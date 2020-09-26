@@ -1,61 +1,46 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <vector>
 
 using namespace std;
 
 struct Pipe
 {
 	int id;
-	float length;
-	float diameter;
+	double length;
+	double diameter;
 	bool is_broken;
-
 };
 
 
-
-struct KS
+struct CS
 {
 	int id;
 	string name;
-	int num_of_workshops;
-	int working_workshops;
-	int efficient;
+	int num_workshops;
+	int num_running_workshops;
+	int efficiency;
 };
 
+
+// CRUD for Pipe
 Pipe createPipe()
 {
 	Pipe p;
-	cout << "Введите длину трубы: ";
+	cout << "Type pipe length: ";
 	cin >> p.length;
-	cout << "Введите диаметр трубы: ";
+	cout << "Type pipe diametеr: ";
 	cin >> p.diameter;
 	p.is_broken = false;
 	return p;
 }
 
-
-KS createKS()
-{
-	KS ks;
-	cout << "Введите название КС: ";
-	cin >> ks.name;
-	cout << "Введите кол-во цехов: ";
-	cin >> ks.num_of_workshops;
-	cout << "Введите количество цехов в работе: ";
-	cin >> ks.working_workshops;
-	cout << "Введите эффективность компрессорной станции: ";
-	cin >> ks.efficient;
-
-	return ks;
-}
-
 void Pipe_output(Pipe pipe) {
-	cout << "Вывод информации о трубе " << pipe.id << endl;
-	cout << "Длина трубы: " << pipe.length << endl;
-	cout << "Диаметр трубы: " << pipe.diameter << endl;
-	cout << "Статус трубы: " << pipe.is_broken << endl;
+	cout << "Output information about the pipe " << pipe.id << endl;
+	cout << "Pipe length: " << pipe.length << endl;
+	cout << "Pipe diameter: " << pipe.diameter << endl;
+	cout << "Pipe status: " << pipe.is_broken << endl;
 }
 
 void change_Pipe_status(Pipe& pipe) {
@@ -83,10 +68,25 @@ void write_to_file(Pipe pipe) {
 }
 
 
+// CRUD for Compressor station
+CS createCS()
+{
+	CS cs;
+	cout << "Type KS name: ";
+	cin >> cs.name;
+	cout << "Type number of workshops: ";
+	cin >> cs.num_workshops;
+	cout << "Type number of running workshops: ";
+	cin >> cs.num_running_workshops;
+	cout << "Type KS efficiency: ";
+	cin >> cs.efficiency;
+
+	return cs;
+}
+
 
 int main()
 {
-	setlocale(LC_ALL, "Russian");
 	int id = 0;
 
 	Pipe pipe1 = createPipe();
