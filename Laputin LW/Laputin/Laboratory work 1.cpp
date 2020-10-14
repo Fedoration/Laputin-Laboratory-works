@@ -9,7 +9,7 @@ using namespace std;
 template <typename T>
 T GetCorrectNumber(string text, T min, T max)
 {
-	T parameter = 0;
+	T parameter;
 	cout << text;
 	while (!(cin >> parameter) || parameter < min || parameter > max) {
 		cin.clear();
@@ -24,7 +24,7 @@ struct Pipe
 {
 	int id;
 	double length;
-	double diameter;
+	int diameter;
 	bool is_broken;
 };
 
@@ -44,7 +44,7 @@ struct CS
 istream& operator >> (istream& in, Pipe& p)
 {
 	p.length = GetCorrectNumber("Type pipe length: ", 0.0, 1000.0);
-	p.diameter = GetCorrectNumber("Type pipe diameter: ", 0.0, 1000.0);
+	p.diameter = GetCorrectNumber("Type pipe diameter: ", 0, 2500);
 	p.is_broken = false;
 	return in;
 }
@@ -86,41 +86,10 @@ void change_Pipe_status(Pipe& pipe) {
 Pipe& SelectPipe(vector<Pipe>& v)
 {
 	string str_number_of_pipes = to_string(v.size()-1);
-	string input_text = "Enter ID of the pipe 0-" + str_number_of_pipes;		//string stream
+	string input_text = "Enter ID of the pipe 0-" + str_number_of_pipes;		
 	unsigned int id = GetCorrectNumber(input_text, 0u, v.size()-1);
 	return v[id];
 	
-}
-
-bool pipe_read_from_file(Pipe& p) {
-	ifstream fin;
-	fin.open("pipe_info.txt", ios::in);
-	if (fin.is_open())
-	{
-		Pipe p;
-		fin >> p.id >> p.length >> p.diameter >> p.is_broken;
-		fin.close();
-		return true;
-	}
-	else {
-		cout << "File pipe_info.txt wasnt open" << endl;
-		return false;
-	}
-}
-
-void pipe_write_to_file(const Pipe& pipe)
-{
-	ofstream fout;
-	fout.open("data.txt", ios::out);
-	if (fout.is_open())
-	{
-		fout << pipe.id << endl << pipe.length << endl << pipe.diameter << endl << pipe.is_broken << endl;
-		fout.close();
-		cout << "\nWriting to the file was successful" << endl;
-	}
-	else {
-		cout << "File data.txt wasnt open" << endl;
-	}
 }
 
 
@@ -132,7 +101,7 @@ istream& operator >> (istream& in, CS& cs)
 	cin.get();
 	getline(cin, cs.name);
 	cs.count_workshops = GetCorrectNumber("Type number of workshops: ", 0, 100);
-	cs.count_running_workshops = GetCorrectNumber("Type number of running workshops: ", 0, 100);
+	cs.count_running_workshops = GetCorrectNumber("Type number of running workshops: ", 0, cs.count_workshops);
 	cs.efficiency = GetCorrectNumber("Type CS efficiency: ", 0.0, 1.0);
 	return in;
 }
@@ -176,7 +145,7 @@ void edit_CS(CS& cs) {
 		 << "\nwas changed to " << cs.count_running_workshops << endl;
 }
 
-CS& SelectCS(vector<CS> v)
+CS& SelectCS(vector<CS>& v)
 {
 	string str_number_of_CSs = to_string(v.size() - 1);
 	string input_text = "Enter ID of the CS 0-" + str_number_of_CSs;		//string stream
@@ -184,72 +153,51 @@ CS& SelectCS(vector<CS> v)
 	return v[id];
 }
 
-bool cs_read_from_file(CS& cs)
-{
-	ifstream fin;
-	fin.open("cs_info.txt", ios::in);
-	if (fin.is_open())
-	{
-		CS cs;
-		fin >> cs.id >> cs.name >> cs.count_workshops
-			>> cs.count_running_workshops >> cs.efficiency;
-		fin.close();
-		return true;
-	}
-	else {
-		cout << "File data.txt wasn't open" << endl;
-		return false;
-	}
-}
 
-void cs_write_to_file(const CS& cs)
-{
-	ofstream fout;
-	fout.open("data.txt", ios::out);
-	if (fout.is_open())
-	{
-		fout << cs.id << cs.name << cs.count_workshops
-			 << cs.count_running_workshops << cs.efficiency;
-		fout.close();
-		cout << "\nWriting to the file was successful" << endl;
-	}
-	else {
-		cout << "File data.txt wasn't open" << endl;
-	}
-}
 
 /*Save Pipe/CS*/
-//void SavePipe(ofstream& fout, const Pipe& p)
-//{
-//	fout << p.id << endl << p.length << endl 
-//		 << p.diameter << endl << p.is_broken << endl;
-//}
-//
-//void SaveCS(ofstream& fout, const CS& cs)
-//{
-//	fout << cs.id << endl << cs.name << endl << cs.count_workshops
-//		 << endl << cs.count_running_workshops << endl << cs.efficiency << endl;
-//}
+void SavePipe(ofstream& fout, const Pipe& p)
+{
+	fout << p.id << endl << p.length << endl 
+		 << p.diameter << endl << p.is_broken << endl;
+}
+
+void SaveCS(ofstream& fout, const CS& cs)
+{
+	fout << cs.id << endl << cs.name << endl << cs.count_workshops
+		 << endl << cs.count_running_workshops << endl << cs.efficiency << endl;
+}
+
+/*Load Pipe/CS*/
+Pipe LoadPipe(ifstream& fin)
+{
+	Pipe p;
+	fin >> p.id >> p.length >> p.diameter >> p.is_broken;
+	return p;
+}
+
+CS LoadCS(ifstream& fin)
+{
+	CS cs;
+	fin >> cs.id >> cs.name >> cs.count_workshops
+		>> cs.count_running_workshops >> cs.efficiency;
+	return cs;
+}
 
 void SaveToFile(ofstream& fout, const vector<Pipe>& Pipes, const vector<CS>& CSs)
 {
-	int number_of_pipes = Pipes.size();
-	int number_of_CSs = CSs.size();
 	fout << Pipes.size() << endl;
 	fout << CSs.size() << endl;
 
-	if (number_of_pipes != 0) {
+	if (Pipes.size() != 0) {
 		for (auto p : Pipes) {
-			fout << p.id << endl << p.length << endl
-				 << p.diameter << endl << p.is_broken << endl;
+			SavePipe(fout, p);
 		}
 	}
 
-	if (number_of_CSs != 0) {
+	if (CSs.size() != 0) {
 		for (auto cs : CSs) {
-			fout << cs.id << endl << cs.name << endl << cs.count_workshops
-				 << endl << cs.count_running_workshops 
-				 << endl << cs.efficiency << endl;
+			SaveCS(fout, cs);
 		}
 	}
 
@@ -308,17 +256,15 @@ int main()
 		case 1: {
 			Pipe pipe;
 			cin >> pipe;
-			pipe.id = pipe_id;
+			pipe.id = pipe_id++;
 			Pipes.push_back(pipe);
-			pipe_id++;
 			break;
 		}
 		case 2: {
 			CS cs;
 			cin >> cs;
-			cs.id = cs_id;
+			cs.id = cs_id++;
 			CSs.push_back(cs);
-			cs_id++;
 			break;
 		}
 		case 3: {
