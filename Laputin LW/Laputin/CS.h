@@ -8,7 +8,7 @@ public:
 	std::string name;
 	int count_workshops;
 	int count_running_workshops;
-	int efficiency;
+	double efficiency;
 	CS();
 
 	void edit_CS();

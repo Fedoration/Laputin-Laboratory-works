@@ -1,3 +1,5 @@
+#include <math.h>
+
 #include <iostream>
 #include <fstream>
 
@@ -14,11 +16,11 @@ void Print_secondary_menu(string clause1, string clause2);
 
 /*FILTER*/
 
-template<typename T_param, class T>
+template<class T, typename T_param>
 using Filter = bool(*)(const T & obj, T_param param);
 
-template<typename T_param, class T>
-vector<int> FindObjectsByFilter(const vector<T>& v, Filter<T_param, T> f, T_param param) {
+template<class T, typename T_param>
+vector<int> FindObjectsByFilter(const vector<T>& v, Filter<T, T_param> f, T_param param) {
 	
 	vector <int> res;
 	int i = 0;
@@ -31,7 +33,8 @@ vector<int> FindObjectsByFilter(const vector<T>& v, Filter<T_param, T> f, T_para
 }
 
 
-bool CheckByPipeID(const Pipe& p, unsigned int param) {
+template <class T>
+bool CheckByID(const T& p, unsigned int param) {
 	return p.id == param;
 }
 
@@ -44,33 +47,33 @@ bool CheckByName(const CS& cs, string param) {
 }
 
 bool CheckByPercentOfWorkshops(const CS& cs, double param) {
-	double percentage_of_number_workshops = cs.count_running_workshops / (double)cs.count_workshops;
-	return percentage_of_number_workshops == param;
+	double percentage_of_number_workshops = 1.0 - cs.count_running_workshops / (double)cs.count_workshops;
+	return (abs(percentage_of_number_workshops - param / 100.0) < 0.0001);
 }
 
 
-template <class T_vect>
-T_vect& SelectedPipeCS(vector <T_vect>& v) {
-	unsigned int id = GetCorrectNumber("Enter ID: ", 0u, 10000u);
-	for (int i : FindObjectsByFilter<T_vect, unsigned int>(v, CheckByPipeID, id)) {
-		return v[i];
-	}
-}
-
-
-//template <class T>
-//T& SelectPipeCS(vector <T>& v) {
-//	while (true) {
-//		unsigned int id = GetCorrectNumber("Enter ID: ", 0u, 10000u);
-//		int n = 0;
-//		for (auto& obj : v) {
-//			if (obj.id == id) {
-//				return v[n];
-//			}
-//			n++;
-//		}
+//template <class T_vect>
+//T_vect& SelectedPipeCS(vector <T_vect>& v) {
+//	unsigned int id = GetCorrectNumber("Enter ID: ", 0u, 10000u);
+//	for (int i : FindObjectsByFilter<T_vect,unsigned int>(v, CheckByID, id)) {
+//		return v[i];
 //	}
 //}
+
+
+template <class T>
+T& SelectPipeCS(vector <T>& v) {
+	while (true) {
+		unsigned int id = GetCorrectNumber("Enter ID: ", 0u, 10000u);
+		int n = 0;
+		for (auto& obj : v) {
+			if (obj.id == id) {
+				return v[n];
+			}
+			n++;
+		}
+	}
+}
 
 template<class T>
 void DeletePipeCS(vector<T>& v) {
@@ -95,7 +98,7 @@ void EditingPipes(vector<Pipe>& v) {
 	int answer;
 	while (true) {
 		
-		Print_secondary_menu("ALL", "Slice");
+		Print_secondary_menu("All", "Slice");
 		answer = GetCorrectNumber("Your choice (0-2): ", 0, 2);
 		
 		if (answer == 1) {
@@ -125,13 +128,13 @@ void EditingPipes(vector<Pipe>& v) {
 /*Save Pipe/CS*/
 void SavePipe(ofstream& fout, const Pipe& p)
 {
-	fout << p.length << endl 
+	fout << p.id << endl << p.length << endl 
 		 << p.diameter << endl << p.is_broken << endl;
 }
 
 void SaveCS(ofstream& fout, const CS& cs)
 {
-	fout << cs.name << endl << cs.count_workshops
+	fout << cs.id << endl << cs.name << endl << cs.count_workshops
 		 << endl << cs.count_running_workshops << endl << cs.efficiency << endl;
 }
 
@@ -139,14 +142,14 @@ void SaveCS(ofstream& fout, const CS& cs)
 Pipe LoadPipe(ifstream& fin)
 {
 	Pipe p;
-	fin >> p.length >> p.diameter >> p.is_broken;
+	fin >> p.id >> p.length >> p.diameter >> p.is_broken;
 	return p;
 }
 
 CS LoadCS(ifstream& fin)
 {
 	CS cs;
-	fin >> cs.name >> cs.count_workshops
+	fin >> cs.id >> cs.name >> cs.count_workshops
 		>> cs.count_running_workshops >> cs.efficiency;
 	return cs;
 }
@@ -168,6 +171,8 @@ void SaveToFile(ofstream& fout, const vector<Pipe>& Pipes, const vector<CS>& CSs
 		}
 	}
 
+	fout << Pipe::MaxID << endl;
+	fout << CS::MaxID << endl;
 }
 
 
@@ -177,14 +182,26 @@ void LoadFromFile(ifstream& fin, vector<Pipe>& Pipes, vector<CS>& CSs)
 	int number_of_CSs;
 	fin >> number_of_pipes;
 	fin >> number_of_CSs;
+	
 
-	while (number_of_pipes--) {
-		Pipes.push_back(LoadPipe(fin));
+	if (number_of_pipes > 0 or number_of_CSs > 0) {
+		
+		Pipes.clear();
+		CSs.clear();
+
+		while (number_of_pipes--) {
+			Pipes.push_back(LoadPipe(fin));
+		}
+
+		CSs.clear();
+		while (number_of_CSs--) {
+			CSs.push_back(LoadCS(fin));
+		}
+
+		fin >> Pipe::MaxID;
+		fin >> CS::MaxID;
 	}
 
-	while (number_of_CSs--) {
-		CSs.push_back(LoadCS(fin));
-	}
 }
 
 
@@ -272,7 +289,7 @@ int main()
 				int choice3 = GetCorrectNumber("Your choice (0-2): ", 0, 2);
 				if (choice3 == 1) {
 					if (Pipes.size() != 0) {
-						SelectedPipeCS(Pipes).change_Pipe_status();
+						SelectPipeCS(Pipes).change_Pipe_status();
 					}
 					else {
 						cout << "You haven't added any pipes yet" << endl;
@@ -280,7 +297,7 @@ int main()
 				}
 				else if (choice3 == 2) {
 					if (CSs.size() != 0) {
-						SelectedPipeCS(CSs).edit_CS();
+						SelectPipeCS(CSs).edit_CS();
 					}
 					else {
 						cout << "You haven't added any compressor stations yet" << endl;
@@ -333,7 +350,7 @@ int main()
 				if (choice5 == 1) {
 					unsigned int id_to_find;
 					id_to_find = GetCorrectNumber("Type id: ", 0u, 10000u);
-					for (int i : FindObjectsByFilter(Pipes, CheckByPipeID, id_to_find)) {
+					for (int i : FindObjectsByFilter(Pipes, CheckByID, id_to_find)) {
 						cout << Pipes[i] << endl;
 					}
 				}
@@ -355,7 +372,7 @@ int main()
 		}
 		case 6: {
 			while (true) {
-				Print_secondary_menu("Find by name", "Find by percent of workshops");
+				Print_secondary_menu("Find by name", "Find by percent of idle workshops");
 				int choice6 = GetCorrectNumber("Your choice (0-2): ", 0, 2);
 				if (choice6 == 1) {
 					string name_to_find;
@@ -368,7 +385,7 @@ int main()
 				}
 				else if (choice6 == 2) {
 					double percentage_to_find;
-					percentage_to_find = GetCorrectNumber("Type percentage(0-1): ", 0.0, 1.0);
+					percentage_to_find = GetCorrectNumber("Type percentage(0-100%): ", 0.0, 100.0);
 					for (int i : FindObjectsByFilter(CSs, CheckByPercentOfWorkshops, percentage_to_find)) {
 						cout << CSs[i] << endl;
 					}
@@ -426,5 +443,5 @@ int main()
 
 /*
 Что нужно изменить в проекте?
-
+сохранить MaxID, при загрузке из файла удалить все данные из векторов и создавать по новой, MaxID должен быть на 1 больше максимального ИД объектов
 */

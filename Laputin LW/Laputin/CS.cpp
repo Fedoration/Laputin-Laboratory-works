@@ -6,7 +6,7 @@ using namespace std;
 int CS::MaxID = 0;
 
 CS::CS() {
-	id = MaxID++;
+	id = ++MaxID;
 	string name = "Unknown";
 	count_workshops = 0;
 	count_running_workshops = 0;
@@ -33,7 +33,8 @@ ostream& operator << (ostream& out, const CS& cs)
 	out << "\nOutput information about the compressor station " << cs.id << "\n"
 		<< "CS name: " << cs.name << "\n"
 		<< "Count of workshops: " << cs.count_workshops << "\n"
-		<< "Count of running workshops: " << cs.count_running_workshops << endl;
+		<< "Count of running workshops: " << cs.count_running_workshops << "\n"
+		<< "CS efficiency: " << cs.efficiency << endl;
 	return out;
 }
 

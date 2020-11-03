@@ -6,7 +6,7 @@ using namespace std;
 int Pipe::MaxID = 0;
 
 Pipe::Pipe() {
-	id = MaxID++;
+	id = ++MaxID;
 	length = 0;
 	diameter = 0;
 	is_broken = false;
