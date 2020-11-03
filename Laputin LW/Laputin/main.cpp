@@ -14,11 +14,11 @@ void Print_secondary_menu(string clause1, string clause2);
 
 /*FILTER*/
 
-template<class T, typename T_param>
-using Filter = bool(*)(const T& obj, T_param param);
+template<typename T_param, class T>
+using Filter = bool(*)(const T & obj, T_param param);
 
-template<class T, typename T_param>
-vector<int> FindObjectsByFilter(const vector<T>& v, Filter<T, T_param> f, T_param param) {
+template<typename T_param, class T>
+vector<int> FindObjectsByFilter(const vector<T>& v, Filter<T_param, T> f, T_param param) {
 	
 	vector <int> res;
 	int i = 0;
@@ -30,8 +30,8 @@ vector<int> FindObjectsByFilter(const vector<T>& v, Filter<T, T_param> f, T_para
 	return res;
 }
 
-template <class T>
-bool CheckByID(const T& p, unsigned int param) {
+
+bool CheckByPipeID(const Pipe& p, unsigned int param) {
 	return p.id == param;
 }
 
@@ -50,10 +50,9 @@ bool CheckByPercentOfWorkshops(const CS& cs, double param) {
 
 
 template <class T_vect>
- T_vect& SelectedPipeCS(vector <T_vect>& v) {
+T_vect& SelectedPipeCS(vector <T_vect>& v) {
 	unsigned int id = GetCorrectNumber("Enter ID: ", 0u, 10000u);
-
-	for (int i : FindObjectsByFilter<T_vect, unsigned int>(v, CheckByID, id)) {
+	for (int i : FindObjectsByFilter<T_vect, unsigned int>(v, CheckByPipeID, id)) {
 		return v[i];
 	}
 }
@@ -334,7 +333,7 @@ int main()
 				if (choice5 == 1) {
 					unsigned int id_to_find;
 					id_to_find = GetCorrectNumber("Type id: ", 0u, 10000u);
-					for (int i : FindObjectsByFilter(Pipes, CheckByID, id_to_find)) {
+					for (int i : FindObjectsByFilter(Pipes, CheckByPipeID, id_to_find)) {
 						cout << Pipes[i] << endl;
 					}
 				}
