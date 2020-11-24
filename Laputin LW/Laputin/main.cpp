@@ -395,7 +395,7 @@ int main()
 				}
 				else {
 					cout << "Wrong action, please type (0-2)" << endl;
-				}
+				} 
 			}
 			break;
 		}
