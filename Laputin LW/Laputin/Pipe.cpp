@@ -10,7 +10,11 @@ Pipe::Pipe() {
 	length = 0;
 	diameter = 0;
 	is_broken = false;
+	cout << "pipe created!!!!" << endl;
+}
 
+Pipe::~Pipe() {
+	cout << "pipe deleted!!!" << endl;
 }
 
 void Pipe::change_Pipe_status()

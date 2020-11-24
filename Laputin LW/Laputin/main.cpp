@@ -5,6 +5,7 @@
 
 #include <string>
 #include <vector>
+#include <map>
 
 #include "Pipe.h"
 #include "CS.h"
@@ -20,16 +21,14 @@ template<class T, typename T_param>
 using Filter = bool(*)(const T & obj, T_param param);
 
 template<class T, typename T_param>
-vector<int> FindObjectsByFilter(const vector<T>& v, Filter<T, T_param> f, T_param param) {
+vector<int> FindObjectsByFilter(const map<int, T>& m, Filter<T, T_param> f, T_param param) {
 	
-	vector <int> res;
-	int i = 0;
-	for (auto& obj : v) {
-		if (f(obj, param))
-			res.push_back(i);
-		i++;
+	vector <int> result;
+	for (const auto& item : m) {
+		if (f(item.second, param))
+			result.push_back(item.first);
 	}
-	return res;
+	return result;
 }
 
 
@@ -61,39 +60,25 @@ bool CheckByPercentOfWorkshops(const CS& cs, double param) {
 //}
 
 
-template <class T>
-T& SelectPipeCS(vector <T>& v) {
-	while (true) {
-		unsigned int id = GetCorrectNumber("Enter ID: ", 0u, 10000u);
-		int n = 0;
-		for (auto& obj : v) {
-			if (obj.id == id) {
-				return v[n];
-			}
-			n++;
-		}
-	}
-}
+//template <typename T_id, class T_class>
+//T& SelectPipeCS(map <T_id, T_class>& m) {
+//  
+//}
 
 template<class T>
-void DeletePipeCS(vector<T>& v) {
+void DeletePipeCS(map<int, T>& m) {
 	unsigned int id = GetCorrectNumber("Enter ID: ", 0u, 10000u);
-	int n = 0;
-	bool is_finded = false;
-	for (auto& obj : v) {
-		if (obj.id == id) {
-			v.erase(v.begin() + n);
-			is_finded = true;
-			break;
-		}
-		n++;
-	}
-	if (!(is_finded))
+	if (m.count(id) == 0) {
 		cout << "\nThere is no object with id [" << id << "]" << endl;
+	}
+	else {
+		m.erase(id);
+	}
+	
 }
 
 
-void EditingPipes(vector<Pipe>& v) {
+void EditingPipes(map<int, Pipe>& m) {
 
 	int answer;
 	while (true) {
@@ -102,8 +87,8 @@ void EditingPipes(vector<Pipe>& v) {
 		answer = GetCorrectNumber("Your choice (0-2): ", 0, 2);
 		
 		if (answer == 1) {
-			for (auto& p : v) {
-				p.change_Pipe_status();				
+			for (auto& item : m) {
+				item.second.change_Pipe_status();				
 			}
 			break;
 		}
@@ -111,9 +96,9 @@ void EditingPipes(vector<Pipe>& v) {
 			int begin_slice = GetCorrectNumber("Type start index the slice: ", 0, Pipe::MaxID);
 			int end_slice = GetCorrectNumber("Type end index of the slice: ", begin_slice, Pipe::MaxID);
 			int n = 0;
-			for (auto& p : v) {
-				if (p.id >= begin_slice && p.id <= end_slice) {
-					p.change_Pipe_status();
+			for (auto& item : m) {
+				if (item.second.id >= begin_slice && item.second.id <= end_slice) {
+					item.second.change_Pipe_status();
 				}
 				n++;
 			}
@@ -154,20 +139,20 @@ CS LoadCS(ifstream& fin)
 	return cs;
 }
 
-void SaveToFile(ofstream& fout, const vector<Pipe>& Pipes, const vector<CS>& CSs)
+void SaveToFile(ofstream& fout, const map<int, Pipe>& Pipes, const map<int, CS>& CSs)
 {
 	fout << Pipes.size() << endl;
 	fout << CSs.size() << endl;
 
 	if (Pipes.size() != 0) {
-		for (auto p : Pipes) {
-			SavePipe(fout, p);
+		for (auto item : Pipes) {
+			SavePipe(fout, item.second);
 		}
 	}
 
 	if (CSs.size() != 0) {
-		for (auto cs : CSs) {
-			SaveCS(fout, cs);
+		for (auto item : CSs) {
+			SaveCS(fout, item.second);
 		}
 	}
 
@@ -176,7 +161,7 @@ void SaveToFile(ofstream& fout, const vector<Pipe>& Pipes, const vector<CS>& CSs
 }
 
 
-void LoadFromFile(ifstream& fin, vector<Pipe>& Pipes, vector<CS>& CSs)
+void LoadFromFile(ifstream& fin, map<int, Pipe>& Pipes, map<int, CS>& CSs)
 {
 	int number_of_pipes;
 	int number_of_CSs;
@@ -190,12 +175,14 @@ void LoadFromFile(ifstream& fin, vector<Pipe>& Pipes, vector<CS>& CSs)
 		CSs.clear();
 
 		while (number_of_pipes--) {
-			Pipes.push_back(LoadPipe(fin));
+			Pipe p = LoadPipe(fin);
+			Pipes[p.id] = p;
 		}
 
 		CSs.clear();
 		while (number_of_CSs--) {
-			CSs.push_back(LoadCS(fin));
+			CS cs = LoadCS(fin);
+			CSs[cs.id] = cs;
 		}
 
 		fin >> Pipe::MaxID;
@@ -233,8 +220,8 @@ void Print_secondary_menu(string clause1, string clause2)
 
 int main()
 {
-	vector<Pipe> Pipes;
-	vector<CS> CSs;;
+	map<int, Pipe> Pipes;
+	map<int, CS> CSs;
 	while (true) {
 
 		PrintMenu();
@@ -249,11 +236,13 @@ int main()
 				if (choice1 == 1){
 					Pipe pipe;
 					cin >> pipe;
-					Pipes.push_back(pipe);
+					cout << "Pipe maxId=" << pipe.MaxID << endl;
+					Pipes[pipe.id] = pipe;
+					cout << "Pipe maxId=" << pipe.MaxID << endl;
 				} else if(choice1 == 2){
 					CS cs;
 					cin >> cs;
-					CSs.push_back(cs);
+					CSs[cs.id] = cs;
 				} else if(choice1 == 0){
 					break;
 				}
@@ -265,8 +254,8 @@ int main()
 		}
 		case 2: {
 			if (Pipes.size() != 0) {
-				for (auto& p : Pipes) {
-					cout << p << endl;
+				for (const auto& item: Pipes) {
+					cout << item.second << endl;
 				}
 			}
 			else {
@@ -274,8 +263,8 @@ int main()
 			}
 
 			if (CSs.size() != 0) {
-				for (auto& cs : CSs) {
-					cout << cs << endl;
+				for (const auto& item: CSs) {
+					cout << item.second << endl;
 				}
 			}
 			else {
@@ -284,7 +273,7 @@ int main()
 			break;
 		}
 		case 3: {
-			while (true) {
+			/*while (true) {
 				Print_secondary_menu("Pipe", "CS");
 				int choice3 = GetCorrectNumber("Your choice (0-2): ", 0, 2);
 				if (choice3 == 1) {
@@ -310,7 +299,7 @@ int main()
 				else {
 					cout << "Wrong action, please type (0-2)" << endl;
 				}
-			}
+			}*/
 			break;
 		}
 		case 4: {

@@ -13,6 +13,8 @@ public:
 	bool is_broken;
 	Pipe();
 
+	~Pipe();
+
 	friend std::istream& operator >> (std::istream& in, Pipe& p);
 	friend std::ostream& operator << (std::ostream& out, const Pipe& p);
 	void change_Pipe_status();
