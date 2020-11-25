@@ -10,6 +10,8 @@
 #include "Pipe.h"
 #include "CS.h"
 #include "utils.h"
+#include <unordered_map>
+
 
 using namespace std;
 
@@ -21,7 +23,7 @@ template<class T, typename T_param>
 using Filter = bool(*)(const T & obj, T_param param);
 
 template<class T, typename T_param>
-vector<int> FindObjectsByFilter(const map<int, T>& m, Filter<T, T_param> f, T_param param) {
+vector<int> FindObjectsByFilter(const unordered_map<int, T>& m, Filter<T, T_param> f, T_param param) {
 	
 	vector <int> result;
 	for (const auto& item : m) {
@@ -66,7 +68,7 @@ bool CheckByPercentOfWorkshops(const CS& cs, double param) {
 //}
 
 template<class T>
-void DeletePipeCS(map<int, T>& m) {
+void DeletePipeCS(unordered_map<int, T>& m) {
 	unsigned int id = GetCorrectNumber("Enter ID: ", 0u, 10000u);
 	if (m.count(id) == 0) {
 		cout << "\nThere is no object with id [" << id << "]" << endl;
@@ -78,7 +80,7 @@ void DeletePipeCS(map<int, T>& m) {
 }
 
 
-void EditingPipes(map<int, Pipe>& m) {
+void EditingPipes(unordered_map<int, Pipe>& m) {
 
 	int answer;
 	while (true) {
@@ -108,6 +110,16 @@ void EditingPipes(map<int, Pipe>& m) {
 		}
 	}
 }
+
+vector<int>  CreateBatchCSs(unordered_map<int, CS>& m) {
+	int mycapacity = GetCorrectNumber("How much CSs do u want to add: ", 1u, m.size());
+	vector<int> result(mycapacity);
+	for (auto& i : result) {
+		i = GetCorrectNumber("Type CS id: ", 1u, m.size());
+	}
+	return result;
+}
+
 
 
 /*Save Pipe/CS*/
@@ -139,19 +151,19 @@ CS LoadCS(ifstream& fin)
 	return cs;
 }
 
-void SaveToFile(ofstream& fout, const map<int, Pipe>& Pipes, const map<int, CS>& CSs)
+void SaveToFile(ofstream& fout, const unordered_map<int, Pipe>& Pipes, const unordered_map<int, CS>& CSs)
 {
 	fout << Pipes.size() << endl;
 	fout << CSs.size() << endl;
 
 	if (Pipes.size() != 0) {
-		for (auto item : Pipes) {
+		for (const auto& item : Pipes) {
 			SavePipe(fout, item.second);
 		}
 	}
 
 	if (CSs.size() != 0) {
-		for (auto item : CSs) {
+		for (const auto& item : CSs) {
 			SaveCS(fout, item.second);
 		}
 	}
@@ -161,7 +173,7 @@ void SaveToFile(ofstream& fout, const map<int, Pipe>& Pipes, const map<int, CS>&
 }
 
 
-void LoadFromFile(ifstream& fin, map<int, Pipe>& Pipes, map<int, CS>& CSs)
+void LoadFromFile(ifstream& fin, unordered_map<int, Pipe>& Pipes, unordered_map<int, CS>& CSs)
 {
 	int number_of_pipes;
 	int number_of_CSs;
@@ -204,6 +216,7 @@ void PrintMenu()
 		 << "7. Batch editing of pipes" << "\n"
 		 << "8. Save to file" << "\n"
 		 << "9. Load from file" << "\n"
+		 << "10. Create Gaz Transport Network" << "\n"
 		 << "0. Exit" << "\n"
 		 << "-------------------" << endl;;
 }
@@ -220,12 +233,12 @@ void Print_secondary_menu(string clause1, string clause2)
 
 int main()
 {
-	map<int, Pipe> Pipes;
-	map<int, CS> CSs;
+	unordered_map<int, Pipe> Pipes;
+	unordered_map<int, CS> CSs;
 	while (true) {
 
 		PrintMenu();
-		int choice = GetCorrectNumber("Your choice (0-9): ", 0, 9);
+		int choice = GetCorrectNumber("Your choice (0-10): ", 0, 10);
 		cout << '\n';
 		switch (choice) 
 		{
@@ -234,15 +247,17 @@ int main()
 				Print_secondary_menu("Pipe", "CS");
 				int choice1 = GetCorrectNumber("Your choice (0-2): ", 0, 2);
 				if (choice1 == 1){
-					Pipe pipe;
-					cin >> pipe;
-					cout << "Pipe maxId=" << pipe.MaxID << endl;
-					Pipes[pipe.id] = pipe;
-					cout << "Pipe maxId=" << pipe.MaxID << endl;
+					
+					int id = Pipe::MaxID;
+					Pipes.emplace(id, Pipe());
+					cin >> Pipes[id];
+
 				} else if(choice1 == 2){
-					CS cs;
-					cin >> cs;
-					CSs[cs.id] = cs;
+					
+					int id = CS::MaxID;
+					CSs.emplace(id, CS());
+					cin >> CSs[id];
+
 				} else if(choice1 == 0){
 					break;
 				}
@@ -273,12 +288,18 @@ int main()
 			break;
 		}
 		case 3: {
-			/*while (true) {
+			while (true) {
 				Print_secondary_menu("Pipe", "CS");
 				int choice3 = GetCorrectNumber("Your choice (0-2): ", 0, 2);
 				if (choice3 == 1) {
 					if (Pipes.size() != 0) {
-						SelectPipeCS(Pipes).change_Pipe_status();
+						int selected_id = GetCorrectNumber("Type Pipe id: ", 1u, 10000u);
+						if (Pipes.count(selected_id) != 0) {
+							Pipes[selected_id].change_Pipe_status();
+						}
+						else {
+							cout << "There is no pipe with id: " << selected_id << endl;
+						}
 					}
 					else {
 						cout << "You haven't added any pipes yet" << endl;
@@ -286,7 +307,13 @@ int main()
 				}
 				else if (choice3 == 2) {
 					if (CSs.size() != 0) {
-						SelectPipeCS(CSs).edit_CS();
+						int selected_id = GetCorrectNumber("Type CS id: ", 1u, 10000u);
+						if (CSs.count(selected_id) != 0) {
+							CSs[selected_id].edit_CS();
+						}
+						else {
+							cout << "There is no cs with id: " << selected_id << endl;
+						}
 					}
 					else {
 						cout << "You haven't added any compressor stations yet" << endl;
@@ -299,7 +326,7 @@ int main()
 				else {
 					cout << "Wrong action, please type (0-2)" << endl;
 				}
-			}*/
+			}
 			break;
 		}
 		case 4: {
@@ -416,12 +443,16 @@ int main()
 			}
 			break;
 		}
+		case 10: {
+			
+			break;
+		}
 		case 0: {
 			cout << "Goodbye" << endl;
 			return 0;
 		}
 		default: {
-			cout << "Wrong action, please type (0-9)" << endl;
+			cout << "Wrong action, please type (0-10)" << endl;
 		}
 		}
 	}
@@ -432,5 +463,6 @@ int main()
 
 /*
 Что нужно изменить в проекте?
-сохранить MaxID, при загрузке из файла удалить все данные из векторов и создавать по новой, MaxID должен быть на 1 больше максимального ИД объектов
+GTN_adjacency - ГТС матрица смежностей
+GTN_adjacency
 */
