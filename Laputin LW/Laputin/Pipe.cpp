@@ -13,10 +13,6 @@ Pipe::Pipe() {
 	cout << "pipe created!!!!" << endl;
 }
 
-Pipe::~Pipe() {
-	cout << "pipe deleted!!!" << endl;
-}
-
 void Pipe::change_Pipe_status()
 {
 	is_broken = !is_broken;

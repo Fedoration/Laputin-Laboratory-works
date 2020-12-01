@@ -121,7 +121,6 @@ vector<int>  CreateBatchCSs(unordered_map<int, CS>& m) {
 }
 
 
-
 /*Save Pipe/CS*/
 void SavePipe(ofstream& fout, const Pipe& p)
 {
@@ -444,7 +443,10 @@ int main()
 			break;
 		}
 		case 10: {
-			
+			vector<int> batch_of_cs_id = CreateBatchCSs(CSs);
+			const unsigned int s1 = batch_of_cs_id.size();
+			int *GTN_adjacency = new int[s1, s1];
+
 			break;
 		}
 		case 0: {
@@ -465,4 +467,5 @@ int main()
 Что нужно изменить в проекте?
 GTN_adjacency - ГТС матрица смежностей
 GTN_adjacency
+из find взять множество id и передать в ремонт
 */
