@@ -1,4 +1,6 @@
 #include <iostream>
+#include <fstream>
+#include <string>
 #include "CS.h"
 #include "utils.h"
 using namespace std;
@@ -36,5 +38,10 @@ ostream& operator << (ostream& out, const CS& cs)
 		<< "Count of running workshops: " << cs.count_running_workshops << "\n"
 		<< "CS efficiency: " << cs.efficiency << endl;
 	return out;
+}
+
+void CS::SaveCS(ofstream& fout) const {
+	fout << id << endl << name << endl << count_workshops
+		<< endl << count_running_workshops << endl << efficiency << endl;
 }
 

@@ -6,9 +6,11 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <set>
 
 #include "Pipe.h"
 #include "CS.h"
+#include "Network.h"
 #include "utils.h"
 #include <unordered_map>
 
@@ -23,12 +25,12 @@ template<class T, typename T_param>
 using Filter = bool(*)(const T & obj, T_param param);
 
 template<class T, typename T_param>
-vector<int> FindObjectsByFilter(const unordered_map<int, T>& m, Filter<T, T_param> f, T_param param) {
+set<int> FindObjectsByFilter(const unordered_map<int, T>& m, Filter<T, T_param> f, T_param param) {
 	
-	vector <int> result;
+	set <int> result;
 	for (const auto& item : m) {
 		if (f(item.second, param))
-			result.push_back(item.first);
+			result.insert(item.first);
 	}
 	return result;
 }
@@ -85,24 +87,27 @@ void EditingPipes(unordered_map<int, Pipe>& m) {
 	int answer;
 	while (true) {
 		
-		Print_secondary_menu("All", "Slice");
+		Print_secondary_menu("By ID", "By is broken status");
 		answer = GetCorrectNumber("Your choice (0-2): ", 0, 2);
 		
 		if (answer == 1) {
-			for (auto& item : m) {
-				item.second.change_Pipe_status();				
+			while (true) {
+				int choice_id = GetCorrectNumber("Input id (0-exit): ", 0, Pipe::MaxID);
+				if (choice_id == 0) {
+					break;
+				}
+				else {
+					if (m.count(choice_id) != 0) {
+						m[choice_id].change_Pipe_status();
+					}
+				}
 			}
-			break;
 		}
 		else if (answer == 2) {
-			int begin_slice = GetCorrectNumber("Type start index the slice: ", 0, Pipe::MaxID);
-			int end_slice = GetCorrectNumber("Type end index of the slice: ", begin_slice, Pipe::MaxID);
-			int n = 0;
-			for (auto& item : m) {
-				if (item.second.id >= begin_slice && item.second.id <= end_slice) {
-					item.second.change_Pipe_status();
-				}
-				n++;
+			bool is_broken_status_to_find;
+			is_broken_status_to_find = GetCorrectNumber("Is broken? [yes-1/no-0]: ", false, true);
+			for (int i : FindObjectsByFilter(m, CheckByIsBroken, is_broken_status_to_find)) {
+				m[i].change_Pipe_status();
 			}
 		}
 		else {
@@ -120,19 +125,6 @@ vector<int>  CreateBatchCSs(unordered_map<int, CS>& m) {
 	return result;
 }
 
-
-/*Save Pipe/CS*/
-void SavePipe(ofstream& fout, const Pipe& p)
-{
-	fout << p.id << endl << p.length << endl 
-		 << p.diameter << endl << p.is_broken << endl;
-}
-
-void SaveCS(ofstream& fout, const CS& cs)
-{
-	fout << cs.id << endl << cs.name << endl << cs.count_workshops
-		 << endl << cs.count_running_workshops << endl << cs.efficiency << endl;
-}
 
 /*Load Pipe/CS*/
 Pipe LoadPipe(ifstream& fin)
@@ -157,13 +149,13 @@ void SaveToFile(ofstream& fout, const unordered_map<int, Pipe>& Pipes, const uno
 
 	if (Pipes.size() != 0) {
 		for (const auto& item : Pipes) {
-			SavePipe(fout, item.second);
+			item.second.SavePipe(fout);
 		}
 	}
 
 	if (CSs.size() != 0) {
 		for (const auto& item : CSs) {
-			SaveCS(fout, item.second);
+			item.second.SaveCS(fout);
 		}
 	}
 
@@ -234,6 +226,7 @@ int main()
 {
 	unordered_map<int, Pipe> Pipes;
 	unordered_map<int, CS> CSs;
+	unordered_map<string, Network> Networks;
 	while (true) {
 
 		PrintMenu();
@@ -247,13 +240,13 @@ int main()
 				int choice1 = GetCorrectNumber("Your choice (0-2): ", 0, 2);
 				if (choice1 == 1){
 					
-					int id = Pipe::MaxID;
+					int id = Pipe::MaxID + 1;
 					Pipes.emplace(id, Pipe());
 					cin >> Pipes[id];
 
 				} else if(choice1 == 2){
 					
-					int id = CS::MaxID;
+					int id = CS::MaxID + 1;
 					CSs.emplace(id, CS());
 					cin >> CSs[id];
 
@@ -466,6 +459,5 @@ int main()
 /*
 Что нужно изменить в проекте?
 GTN_adjacency - ГТС матрица смежностей
-GTN_adjacency
-из find взять множество id и передать в ремонт
+
 */

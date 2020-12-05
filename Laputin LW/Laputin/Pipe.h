@@ -1,5 +1,6 @@
 #pragma once
 #include <iostream>
+#include <fstream>
 #include <string>
 
 class Pipe
@@ -8,15 +9,17 @@ class Pipe
 public:
 	int id;
 	static int MaxID;
-	double length;
+	int length;
 	int diameter;
 	bool is_broken;
-	Pipe();
 
-	~Pipe();
+	int in, out;
+	Pipe();
 
 	friend std::istream& operator >> (std::istream& in, Pipe& p);
 	friend std::ostream& operator << (std::ostream& out, const Pipe& p);
+	void SavePipe(std::ofstream& fout)const;
 	void change_Pipe_status();
+	int get_weight();
 };
 

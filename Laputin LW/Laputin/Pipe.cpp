@@ -1,5 +1,8 @@
 #include "Pipe.h"
 #include "utils.h"
+
+#include <iostream>
+#include <fstream>
 using namespace std;
 
 
@@ -10,7 +13,8 @@ Pipe::Pipe() {
 	length = 0;
 	diameter = 0;
 	is_broken = false;
-	cout << "pipe created!!!!" << endl;
+	in = 0;
+	out = 0;
 }
 
 void Pipe::change_Pipe_status()
@@ -20,7 +24,7 @@ void Pipe::change_Pipe_status()
 
 istream& operator >> (istream& in, Pipe& p)
 {
-	p.length = GetCorrectNumber("Type pipe length: ", 0.0, 1000.0);
+	p.length = GetCorrectNumber("Type pipe length: ", 0, 1000);
 	p.diameter = GetCorrectNumber("Type pipe diameter: ", 0, 2500);
 	p.is_broken = false;
 	return in;
@@ -35,4 +39,13 @@ ostream& operator << (ostream& out, const Pipe& p)
 		<< "Pipe status: " << p.is_broken
 		<< endl;
 	return out;
+}
+
+void Pipe::SavePipe(ofstream& fout) const {
+	fout << id << endl << length << endl
+		<< diameter << endl << is_broken << endl;
+}
+
+int Pipe::get_weight() {
+	return length;
 }
