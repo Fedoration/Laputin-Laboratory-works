@@ -13,7 +13,7 @@ public:
 	int diameter;
 	bool is_broken;
 
-	int in, out;
+	int source, destination;
 	Pipe();
 
 	friend std::istream& operator >> (std::istream& in, Pipe& p);

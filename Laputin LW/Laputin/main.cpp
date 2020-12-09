@@ -17,7 +17,6 @@
 
 using namespace std;
 
-void Print_secondary_menu(string clause1, string clause2);
 
 /*FILTER*/
 
@@ -54,20 +53,6 @@ bool CheckByPercentOfWorkshops(const CS& cs, double param) {
 	return (abs(percentage_of_number_workshops - param / 100.0) < 0.0001);
 }
 
-
-//template <class T_vect>
-//T_vect& SelectedPipeCS(vector <T_vect>& v) {
-//	unsigned int id = GetCorrectNumber("Enter ID: ", 0u, 10000u);
-//	for (int i : FindObjectsByFilter<T_vect,unsigned int>(v, CheckByID, id)) {
-//		return v[i];
-//	}
-//}
-
-
-//template <typename T_id, class T_class>
-//T& SelectPipeCS(map <T_id, T_class>& m) {
-//  
-//}
 
 template<class T>
 void DeletePipeCS(unordered_map<int, T>& m) {
@@ -195,38 +180,12 @@ void LoadFromFile(ifstream& fin, unordered_map<int, Pipe>& Pipes, unordered_map<
 }
 
 
-void PrintMenu()
-{
-	cout << "-------------------\n"
-		 << "1. Input new Pipe/CS" << "\n"
-		 << "2. View all objects" << "\n"
-		 << "3. Edit Pipe/CS" << "\n"
-		 << "4. Delete Pipe/CS" << "\n"
-		 << "5. Pipe Filter" << "\n"
-		 << "6. CS Filter" << "\n"
-		 << "7. Batch editing of pipes" << "\n"
-		 << "8. Save to file" << "\n"
-		 << "9. Load from file" << "\n"
-		 << "10. Create Gaz Transport Network" << "\n"
-		 << "0. Exit" << "\n"
-		 << "-------------------" << endl;;
-}
-
-void Print_secondary_menu(string clause1, string clause2)
-{
-	cout << "-------------------\n"
-		<< "0. Back" << "\n"
-		<< "1. " << clause1 << "\n"
-		<< "2. " << clause2 << "\n"
-		<< "-------------------" << endl;
-}
-
-
 int main()
 {
 	unordered_map<int, Pipe> Pipes;
 	unordered_map<int, CS> CSs;
-	unordered_map<string, Network> Networks;
+	unordered_map<int, Network> Networks;
+
 	while (true) {
 
 		PrintMenu();
@@ -436,9 +395,44 @@ int main()
 			break;
 		}
 		case 10: {
-			vector<int> batch_of_cs_id = CreateBatchCSs(CSs);
-			const unsigned int s1 = batch_of_cs_id.size();
-			int *GTN_adjacency = new int[s1, s1];
+			bool is_network_created = true;
+			while (true) {
+				Print_network_main_menu();
+				int choice10 = GetCorrectNumber("Your choice (0-5): ", 0, 5);
+				if (choice10 == 1) {
+					int id = Network::MaxID + 1;
+					Networks.emplace(id, Network());
+				} 
+				else if(choice10 == 2) {
+					if (is_network_created) {
+						int selected_id = SelectById(Networks, "Type Network id(0-exit): ");
+						Networks[selected_id].Markup_pipe(Pipes, CSs);
+					}
+					else {
+						cout << "There is no Gaz Transport Networks yet" << endl;
+					}
+				}
+				else if (choice10 == 3) {
+					if (is_network_created) {
+						int selected_id = SelectById(Networks, "Type Network id(0-exit): ");
+						Networks[selected_id].Disconnect_pipe(Pipes);
+					}
+					else {
+						cout << "There is no Gaz Transport Networks yet" << endl;
+					}
+				}
+				else if (choice10 == 4) {
+					int selected_id = SelectById(Networks, "Type Network id(0-exit): ");
+					Networks[selected_id].Create_adjacency_matrix(Pipes);
+				}
+				else if (choice10 == 5) {
+					int selected_id = SelectById(Networks, "Type Network id(0-exit): ");
+					Networks[selected_id].Print_network();
+				}
+				else {
+					break;
+				}
+			}
 
 			break;
 		}

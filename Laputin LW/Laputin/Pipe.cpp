@@ -13,8 +13,8 @@ Pipe::Pipe() {
 	length = 0;
 	diameter = 0;
 	is_broken = false;
-	in = 0;
-	out = 0;
+	source = 0;
+	destination = 0;
 }
 
 void Pipe::change_Pipe_status()
@@ -36,7 +36,9 @@ ostream& operator << (ostream& out, const Pipe& p)
 	out << "\nOutput information about the pipe " << p.id << "\n"
 		<< "Pipe length: " << p.length << "\n"
 		<< "Pipe diameter: " << p.diameter << "\n"
-		<< "Pipe status: " << p.is_broken
+		<< "Pipe status: " << p.is_broken << "\n"
+		<< "Pipe source: " << p.source << "\n"
+		<< "Pipe destination: " << p.destination
 		<< endl;
 	return out;
 }

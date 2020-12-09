@@ -4,6 +4,9 @@
 #include <iostream>
 #include "CS.h"
 
+void PrintMenu();
+void Print_secondary_menu(std::string clause1, std::string clause2);
+void Print_network_main_menu();
 
 template <typename T>
 T GetCorrectNumber(std::string text, T min, T max)
@@ -18,9 +21,10 @@ T GetCorrectNumber(std::string text, T min, T max)
 	return parameter;
 }
 
-int SelectById(std::unordered_map<int, CS> m) {
+template <typename T>
+int SelectById(std::unordered_map<int, T> m, std::string text) {
 	while (true) {
-		unsigned int id_to_find = GetCorrectNumber("Type id (0-exit): ", 0u, 10000u);
+		unsigned int id_to_find = GetCorrectNumber(text, 0u, 10000u);
 
 		if (id_to_find == 0) {
 			break;
