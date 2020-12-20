@@ -15,6 +15,16 @@ CS::CS() {
 	efficiency = 0;
 }
 
+int CS::GetId() const
+{
+	return id;
+}
+
+string CS::GetName() const
+{
+	return name;
+}
+
 void CS::edit_CS() {
 	count_running_workshops = GetCorrectNumber("Type number of running workshops: ", 0, count_workshops);
 }
@@ -40,8 +50,24 @@ ostream& operator << (ostream& out, const CS& cs)
 	return out;
 }
 
-void CS::SaveCS(ofstream& fout) const {
-	fout << id << endl << name << endl << count_workshops
-		<< endl << count_running_workshops << endl << efficiency << endl;
+ifstream& operator>>(std::ifstream& fin, CS& cs)
+{
+	fin.ignore();
+	getline(fin, cs.name);
+	fin >> cs.id >> cs.count_workshops
+		>> cs.count_running_workshops >> cs.efficiency;
+	return fin;
 }
+
+ofstream& operator<<(ofstream& fout, const CS& cs)
+{
+	fout << cs.name << endl << cs.id << endl << cs.count_workshops
+		<< endl << cs.count_running_workshops << endl << cs.efficiency << endl;
+	return fout;
+}
+
+//void CS::SaveCS(ofstream& fout) const {
+//	fout << id << endl << name << endl << count_workshops
+//		<< endl << count_running_workshops << endl << efficiency << endl;
+//}
 

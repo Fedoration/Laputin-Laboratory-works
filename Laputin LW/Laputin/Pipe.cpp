@@ -17,6 +17,18 @@ Pipe::Pipe() {
 	destination = 0;
 }
 
+int Pipe::GetId() const {
+	return id;
+}
+
+bool Pipe::GetStatus() const {
+	return is_broken;
+}
+
+int Pipe::GetWeight() {
+	return length;
+}
+
 void Pipe::change_Pipe_status()
 {
 	is_broken = !is_broken;
@@ -43,11 +55,28 @@ ostream& operator << (ostream& out, const Pipe& p)
 	return out;
 }
 
-void Pipe::SavePipe(ofstream& fout) const {
-	fout << id << endl << length << endl
-		<< diameter << endl << is_broken << endl;
+
+ifstream& operator>>(ifstream& fin, Pipe& p)
+{
+	fin >> p.id >> p.length >> p.diameter >> p.is_broken >> p.source >> p.destination;
+	return fin;
 }
 
-int Pipe::get_weight() {
-	return length;
+ofstream& operator<<(ofstream& fout, const Pipe& p)
+{
+	fout << p.id << endl << p.length << endl << p.diameter
+		<< endl << p.is_broken << endl << p.source << endl << p.destination << endl;
+	return fout;
 }
+
+//Pipe LoadPipe(ifstream& fin)
+//{
+//	Pipe p;
+//	fin >> p.id >> p.length >> p.diameter >> p.is_broken;
+//	return p;
+//}
+//
+//void Pipe::SavePipe(ofstream& fout) const {
+//	fout << id << endl << length << endl
+//		<< diameter << endl << is_broken << endl;
+//}

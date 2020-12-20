@@ -13,24 +13,18 @@
 class Network
 {
 public:
-	Network();
-	static int MaxID;
-	std::string GetName();
-	void SetName(const std::string& new_name);
-	int GetId();
-	void SetId(int new_id);
-	void Markup_pipe(
+	void CreateAdjMatrix(std::unordered_map<int, Pipe>& m_pipe);
+	bool is_cycle(int v0, std::vector<std::vector<int>> matr, std::vector<int>& color);
+	void dfs(int v, std::vector<std::vector<int>> matr, std::vector<bool>& visited, std::vector<int>& ans);
+	void TopologicalSort();
+	void ResetMatrix(std::unordered_map<int, Pipe>& m_pipes);
+	void AddConnection(
 		std::unordered_map<int, Pipe>& m_pipe, std::unordered_map<int, CS>& m_cs);
-	void Disconnect_pipe(std::unordered_map<int, Pipe>& m_pipe);
-	void Create_adjacency_matrix(
-		std::unordered_map<int, Pipe>& m_pipe);
 	void Print_network();
 private:
-	std::string name;
-	int id;
 	std::set<int> selected_pipes;
 	std::set<int> selected_css;
 	std::vector<int> cs_matr_pos;
-	std::vector<std::vector<int>> adj_matr;
+	std::vector<std::vector<int>> Adj_Matr;
 };
 

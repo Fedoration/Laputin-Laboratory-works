@@ -7,12 +7,12 @@
 #include <vector>
 #include <map>
 #include <set>
+#include <unordered_map>
 
 #include "Pipe.h"
 #include "CS.h"
 #include "Network.h"
 #include "utils.h"
-#include <unordered_map>
 
 
 using namespace std;
@@ -37,35 +37,21 @@ set<int> FindObjectsByFilter(const unordered_map<int, T>& m, Filter<T, T_param> 
 
 template <class T>
 bool CheckByID(const T& p, unsigned int param) {
-	return p.id == param;
+	return p.GetId() == param;
 }
 
 bool CheckByIsBroken(const Pipe& p, bool param) {
-	return p.is_broken == param;
+	return p.GetStatus() == param;
 }
 
 bool CheckByName(const CS& cs, string param) {
-	return cs.name == param;
+	return cs.GetName() == param;
 }
 
 bool CheckByPercentOfWorkshops(const CS& cs, double param) {
 	double percentage_of_number_workshops = 1.0 - cs.count_running_workshops / (double)cs.count_workshops;
 	return (abs(percentage_of_number_workshops - param / 100.0) < 0.0001);
 }
-
-
-template<class T>
-void DeletePipeCS(unordered_map<int, T>& m) {
-	unsigned int id = GetCorrectNumber("Enter ID: ", 0u, 10000u);
-	if (m.count(id) == 0) {
-		cout << "\nThere is no object with id [" << id << "]" << endl;
-	}
-	else {
-		m.erase(id);
-	}
-	
-}
-
 
 void EditingPipes(unordered_map<int, Pipe>& m) {
 
@@ -110,23 +96,6 @@ vector<int>  CreateBatchCSs(unordered_map<int, CS>& m) {
 	return result;
 }
 
-
-/*Load Pipe/CS*/
-Pipe LoadPipe(ifstream& fin)
-{
-	Pipe p;
-	fin >> p.id >> p.length >> p.diameter >> p.is_broken;
-	return p;
-}
-
-CS LoadCS(ifstream& fin)
-{
-	CS cs;
-	fin >> cs.id >> cs.name >> cs.count_workshops
-		>> cs.count_running_workshops >> cs.efficiency;
-	return cs;
-}
-
 void SaveToFile(ofstream& fout, const unordered_map<int, Pipe>& Pipes, const unordered_map<int, CS>& CSs)
 {
 	fout << Pipes.size() << endl;
@@ -134,13 +103,13 @@ void SaveToFile(ofstream& fout, const unordered_map<int, Pipe>& Pipes, const uno
 
 	if (Pipes.size() != 0) {
 		for (const auto& item : Pipes) {
-			item.second.SavePipe(fout);
+			fout << item.second;
 		}
 	}
 
 	if (CSs.size() != 0) {
 		for (const auto& item : CSs) {
-			item.second.SaveCS(fout);
+			fout << item.second;
 		}
 	}
 
@@ -163,14 +132,16 @@ void LoadFromFile(ifstream& fin, unordered_map<int, Pipe>& Pipes, unordered_map<
 		CSs.clear();
 
 		while (number_of_pipes--) {
-			Pipe p = LoadPipe(fin);
-			Pipes[p.id] = p;
+			Pipe p;
+			fin >> p;
+			Pipes[p.GetId()] = p;
 		}
 
 		CSs.clear();
 		while (number_of_CSs--) {
-			CS cs = LoadCS(fin);
-			CSs[cs.id] = cs;
+			CS cs;
+			fin >> cs;
+			CSs[cs.GetId()] = cs;
 		}
 
 		fin >> Pipe::MaxID;
@@ -184,7 +155,7 @@ int main()
 {
 	unordered_map<int, Pipe> Pipes;
 	unordered_map<int, CS> CSs;
-	unordered_map<int, Network> Networks;
+	Network Netw;
 
 	while (true) {
 
@@ -294,7 +265,14 @@ int main()
 				}
 				else if (choice1 == 2) {
 					if (CSs.size() != 0) {
-						DeletePipeCS(CSs);
+						unsigned int cs_id;
+						DeletePipeCS(CSs, cs_id);
+						for (auto& item : Pipes) {
+							if (item.second.source == cs_id || item.second.destination == cs_id) {
+								item.second.source = 0;
+								item.second.destination = 0;
+							}
+						}
 					}
 					else {
 						cout << "You haven't added any compressor stations yet" << endl;
@@ -395,39 +373,26 @@ int main()
 			break;
 		}
 		case 10: {
-			bool is_network_created = true;
 			while (true) {
 				Print_network_main_menu();
 				int choice10 = GetCorrectNumber("Your choice (0-5): ", 0, 5);
 				if (choice10 == 1) {
-					int id = Network::MaxID + 1;
-					Networks.emplace(id, Network());
+					Netw.AddConnection(Pipes, CSs);
+					Netw.CreateAdjMatrix(Pipes);
 				} 
 				else if(choice10 == 2) {
-					if (is_network_created) {
-						int selected_id = SelectById(Networks, "Type Network id(0-exit): ");
-						Networks[selected_id].Markup_pipe(Pipes, CSs);
-					}
-					else {
-						cout << "There is no Gaz Transport Networks yet" << endl;
-					}
+					Netw.CreateAdjMatrix(Pipes);
+					Netw.TopologicalSort();
 				}
 				else if (choice10 == 3) {
-					if (is_network_created) {
-						int selected_id = SelectById(Networks, "Type Network id(0-exit): ");
-						Networks[selected_id].Disconnect_pipe(Pipes);
-					}
-					else {
-						cout << "There is no Gaz Transport Networks yet" << endl;
-					}
+					Netw.ResetMatrix(Pipes);
+					Netw.CreateAdjMatrix(Pipes);
 				}
 				else if (choice10 == 4) {
-					int selected_id = SelectById(Networks, "Type Network id(0-exit): ");
-					Networks[selected_id].Create_adjacency_matrix(Pipes);
 				}
 				else if (choice10 == 5) {
-					int selected_id = SelectById(Networks, "Type Network id(0-exit): ");
-					Networks[selected_id].Print_network();
+					Netw.CreateAdjMatrix(Pipes);
+					Netw.Print_network();
 				}
 				else {
 					break;
