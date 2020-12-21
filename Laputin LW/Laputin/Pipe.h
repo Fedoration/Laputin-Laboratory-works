@@ -16,7 +16,8 @@ public:
 
 	int GetId() const;
 	bool GetStatus() const;
-	int GetWeight();
+	int GetWeight() const;
+	int GetCapacity() const;
 	friend std::istream& operator >> (std::istream& in, Pipe& p);
 	friend std::ostream& operator << (std::ostream& out, const Pipe& p);
 	friend std::ifstream& operator>>(std::ifstream& fin, Pipe& p);

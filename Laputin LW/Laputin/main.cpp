@@ -378,20 +378,30 @@ int main()
 				int choice10 = GetCorrectNumber("Your choice (0-5): ", 0, 5);
 				if (choice10 == 1) {
 					Netw.AddConnection(Pipes, CSs);
-					Netw.CreateAdjMatrix(Pipes);
+					Netw.CreateAdjMatrix(Pipes, "Weigth");
 				} 
 				else if(choice10 == 2) {
-					Netw.CreateAdjMatrix(Pipes);
+					Netw.CreateAdjMatrix(Pipes, "Weigth");
 					Netw.TopologicalSort();
 				}
 				else if (choice10 == 3) {
 					Netw.ResetMatrix(Pipes);
-					Netw.CreateAdjMatrix(Pipes);
+					Netw.CreateAdjMatrix(Pipes, "Weigth");
 				}
 				else if (choice10 == 4) {
+					Netw.CreateAdjMatrix(Pipes, "Capacity");
+					Netw.Print_network();
+					int result = Netw.MaxFlow();
+					cout << "Result: " << result << endl;
 				}
 				else if (choice10 == 5) {
-					Netw.CreateAdjMatrix(Pipes);
+					Netw.CreateAdjMatrix(Pipes, "Weigth");
+					Netw.Print_network();
+					int result = Netw.FindMinPath();
+					cout << "Result: " << result << endl;
+				}
+				else if (choice10 == 6) {
+					Netw.CreateAdjMatrix(Pipes, "Weigth");
 					Netw.Print_network();
 				}
 				else {

@@ -1,6 +1,8 @@
 #include "Pipe.h"
 #include "utils.h"
 
+#include <cmath>
+
 #include <iostream>
 #include <fstream>
 using namespace std;
@@ -25,8 +27,12 @@ bool Pipe::GetStatus() const {
 	return is_broken;
 }
 
-int Pipe::GetWeight() {
-	return length;
+int Pipe::GetWeight() const{
+	return (is_broken)? 100'000 : length;
+}
+
+int Pipe::GetCapacity() const{
+	return (is_broken)? 0 : round(sqrt(pow(diameter * pow(10, -3), 5) / (length)) * pow(10, 3));
 }
 
 void Pipe::change_Pipe_status()
@@ -36,8 +42,8 @@ void Pipe::change_Pipe_status()
 
 istream& operator >> (istream& in, Pipe& p)
 {
-	p.length = GetCorrectNumber("Type pipe length: ", 0, 1000);
-	p.diameter = GetCorrectNumber("Type pipe diameter: ", 0, 2500);
+	p.length = GetCorrectNumber("Type pipe length: ", 0, 3000);
+	p.diameter = GetCorrectNumber("Type pipe diameter: ", 0, 1500);
 	p.is_broken = false;
 	return in;
 }

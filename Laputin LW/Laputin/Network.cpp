@@ -1,9 +1,12 @@
 #include <iostream>
+#include <string>
+#include <queue>
 #include "Network.h"
 #include "utils.h"
 
 
 using namespace std;
+
 
 void Network::AddConnection(
 	unordered_map<int, Pipe>& m_pipe, unordered_map<int, CS>& m_cs) {
@@ -25,7 +28,8 @@ void Network::AddConnection(
 	}
 }
 
-void Network::CreateAdjMatrix(unordered_map<int, Pipe>& m_pipe) {
+
+void Network::CreateAdjMatrix(unordered_map<int, Pipe>& m_pipe, string mode) {
 	
 	cs_matr_pos.resize(0);
 	selected_pipes.clear();
@@ -47,7 +51,8 @@ void Network::CreateAdjMatrix(unordered_map<int, Pipe>& m_pipe) {
 
 	for (const auto& p_id : selected_pipes) {
 		Adj_Matr[FindIndexByValue(cs_matr_pos, m_pipe[p_id].source)]
-				[FindIndexByValue(cs_matr_pos, m_pipe[p_id].destination)] = m_pipe[p_id].GetWeight(); //1
+				[FindIndexByValue(cs_matr_pos, m_pipe[p_id].destination)]
+				= (mode == "Capacity")? m_pipe[p_id].GetCapacity() : m_pipe[p_id].GetWeight();
 	}
 }
 
@@ -69,6 +74,7 @@ bool Network::is_cycle(int v0, vector<vector<int>> matr, vector<int>& color) {
 	return false;
 }
 
+
 void Network::dfs(int v0, std::vector<std::vector<int>> matr, std::vector<bool>& visited, std::vector<int>& ans)
 {
 	visited[v0] = true;
@@ -80,6 +86,7 @@ void Network::dfs(int v0, std::vector<std::vector<int>> matr, std::vector<bool>&
 	ans.push_back(v0);
 
 }
+
 
 void Network::TopologicalSort() {
 	int n = cs_matr_pos.size();
@@ -108,6 +115,7 @@ void Network::TopologicalSort() {
 	}
 }
 
+
 void Network::ResetMatrix(unordered_map<int, Pipe>& m_pipes) {
 	for (auto& p : m_pipes) {
 		p.second.source = 0;
@@ -115,32 +123,71 @@ void Network::ResetMatrix(unordered_map<int, Pipe>& m_pipes) {
 	}
 }
 
-//void Network::Disconnect_pipe(
-//	unordered_map<int, Pipe>& m_pipe) {
-//	int p_id = SelectById(m_pipe, "Type Pipe id(0-exit): ");
-//
-//	bool is_finded = false;
-//	for (auto i : selected_pipes) {
-//		if (p_id == i) {
-//			is_finded = true;
-//			break;
-//		}
-//	}
-//
-//	if (p_id != -1 && is_finded) {
-//		for (int i = 0; i < Adj_Matr.size(); i++) {
-//			for (int j = 0; j < Adj_Matr[i].size(); j++) {
-//				if (cs_matr_pos[i] == m_pipe[p_id].source && cs_matr_pos[j] == m_pipe[p_id].destination) {
-//					Adj_Matr[i][j] = 0;
-//					selected_pipes.erase(p_id);
-//				}
-//			}
-//		}
-//	}
-//	else {
-//		cout << "There is no connected pipe with id" << endl;
-//	}
-//}
+
+int Network::MaxFlow() {
+	vector<vector<int>> FlowMatrix = Adj_Matr;
+	vector<bool> visited(FlowMatrix.size(), false);
+	int s = GetCorrectNumber("Input source: ", 1u, (size_t)CS::MaxID);
+	int t = GetCorrectNumber("Input sink: ", 1u, (size_t)CS::MaxID);
+	s = s - 1;
+	t = t - 1;
+	for (int flow = 0;;) {
+		int df = FindPath(FlowMatrix, visited, s, t, INT_MAX);
+		if (df == 0) {
+			return flow;
+		}
+		flow += df;
+	}
+}
+
+
+int Network::FindPath(vector<vector<int>>& matr, vector<bool> visited, int u, int t, int f) {
+	if (u == t) {
+		return f;
+	}
+	visited[u] = true;
+	for (int v = 0; v < visited.size(); v++) {
+		if (!visited[v] && matr[u][v] > 0) {
+			int df = FindPath(matr, visited, v, t, min(f, matr[u][v]));
+			if (df > 0) {
+				matr[u][v] -= df;
+				matr[v][u] += df;
+				return df;
+			}
+		}
+	}
+	return 0;
+}
+
+
+int Network::FindMinPath() {
+	int src = GetCorrectNumber("Input source: ", 1u, (size_t)CS::MaxID);
+	int dest = GetCorrectNumber("Input destination: ", 1u, (size_t)CS::MaxID);
+	vector<vector<int>> matr = Adj_Matr;
+	int num_vertex = matr.size();
+	vector<bool> visited(num_vertex, false);
+	vector<int> dist(num_vertex, INT_MAX);
+	src--;
+	dest--;
+	dist[src] = 0;
+	visited[src] = true;
+
+	queue<int> q;
+	q.push(src);
+
+	while (!q.empty()) {
+		int v = q.front();
+		q.pop();
+
+		for (int i = 1; i < matr[v].size(); i++) {
+			if (matr[v][i] && !visited[i] && dist[i] > dist[v] + matr[v][i]) {
+				dist[i] = dist[v] + matr[v][i];
+				q.push(i);
+			}
+		}
+	}
+	return dist[dest];
+}
 
 
 void Network::Print_network() {

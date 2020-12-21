@@ -32,7 +32,8 @@ void Print_network_main_menu() {
 		<< "1. Edit Gaz Transport Network" << "\n"
 		<< "2. Topological Sort" << "\n"
 		<< "3. Reset Network" << "\n"
-		<< "4. _____________" << "\n"
+		<< "4. Find Max Flow" << "\n"
+		<< "6. Find Shortest Path" << "\n"
 		<< "5. Print Gaz Transport Network" << "\n"
 		<< "-------------------" << endl;
 }
